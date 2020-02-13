@@ -137,27 +137,41 @@ node_identifier = str(uuid4()).replace('-', '')
 blockchain = Blockchain()
 
 
-@app.route('/mine', methods=['GET', 'POST'])
+@app.route('/mine', methods=['POST'])
 def mine():
-    if request.method is 'GET':
-        # Run the proof of work algorithm to get the next proof
-        proof = blockchain.proof_of_work(blockchain.last_block)
+    
+    data = request.get_json()
 
-        # Forge the new Block by adding it to the chain with the proof
+    # check that proof and id are present
+    required = ['proof', 'id']
+    if not all(i in data for i in required):
+        response: {
+            'message': 'Error- missing required items'
+        }
+        return jsonify(response), 400
+    
+    # validate proof
+    string_object = json.dumps(blockchain.last_block, sort_keys=True)
+    valid = blockchain.valid_proof(string_object, data['proof'])
+
+    if valid:
         previous_hash = blockchain.hash(blockchain.last_block)
-        block = blockchain.new_block(proof, previous_hash)
+        block = blockchain.new_block(data['proof'], previous_hash)
 
         response = {
-            # TODO: Send a JSON response with the new block
+            'message': 'Success!',
             'index': block['index'],
             'transactions': block['transactions'],
             'proof': block['proof'],
             'previous_hash': block['previous_hash']
         }
-
         return jsonify(response), 200
-    elif request.method is 'POST':
 
+    else:
+        response = {
+            'message': 'Failed'
+        }
+        return jsonify(response), 200
 
 
 @app.route('/chain', methods=['GET'])
