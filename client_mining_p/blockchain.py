@@ -159,7 +159,7 @@ def mine():
         block = blockchain.new_block(data['proof'], previous_hash)
 
         response = {
-            'message': 'Success!',
+            'message': 'New Block Forged!',
             'index': block['index'],
             'transactions': block['transactions'],
             'proof': block['proof'],
@@ -185,11 +185,8 @@ def full_chain():
 
 @app.route('/last_block', methods=['GET'])
 def last_block():
-    response = {
-        # TODO: Return the chain and its current length
-        'last_block': blockchain.chain[len(blockchain.chain)-1]
-    }
-    return jsonify(response), 200
+
+    return jsonify(blockchain.chain[-1]), 200
 
 
 # Run the program on port 5000
